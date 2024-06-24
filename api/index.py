@@ -1,25 +1,23 @@
-from flask import Flask, request, redirect, jsonify, render_template_string
+from flask import Flask, request, redirect, jsonify, render_template_string, send_from_directory
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pymongo import MongoClient
 import csv
-from flask import Flask, jsonify, send_from_directory
 import os
 import logging
 
-
-app = Flask(__name__, static_folder='../public/favicon.ico')
+app = Flask(__name__, static_folder='../public')
 logging.basicConfig(level=logging.DEBUG)
 
-# Gmail credentials and SMTP settings
-gmail_user = 'ilaraecodes@gmail.com'
-gmail_password = 'cjyr hofv smwa ajaz'
+# Gmail credentials and SMTP settings from environment variables
+gmail_user = os.getenv('GMAIL_USER')
+gmail_password = os.getenv('GMAIL_PASSWORD')
 smtp_server = 'smtp.gmail.com'
 smtp_port = 587
 
 # MongoDB connection setup
-mongo_client = MongoClient('mongodb+srv://ilaraecodes:Prayalways1986!@emaillist.tpnge6l.mongodb.net/')
+mongo_client = MongoClient(os.getenv('MONGODB_URI'))
 db = mongo_client['EmailList']
 collection = db['contacts']
 
@@ -108,7 +106,7 @@ def send_email(recipient_email):
         server.login(sender_email, password)
         server.sendmail(sender_email, recipient_email, msg.as_string())
         print(f'Email sent to {recipient_email}')
-        
+
 @app.route('/')
 def home():
     html_content = """
@@ -180,6 +178,10 @@ def home():
     """
     return render_template_string(html_content)
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(app.static_folder, 'favicon.ico')
+
 @app.route('/api/signup', methods=['POST'])
 def signup():
     data = request.json
@@ -209,10 +211,6 @@ def send_emails_from_csv():
                 recipient_email = row[0]  # Adjust as per your CSV column for email addresses
                 send_email(recipient_email)
     return jsonify({"status": "success"}), 200
-
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(app.static_folder, 'favicon.ico')
 
 if __name__ == '__main__':
     app.run(debug=True)
