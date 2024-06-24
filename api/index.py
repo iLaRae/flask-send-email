@@ -1,25 +1,16 @@
-from flask import Flask
 from flask import Flask, request, redirect, jsonify, render_template_string
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pymongo import MongoClient
 import csv
+from flask import Flask, jsonify, send_from_directory
+import os
+import logging
 
 
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return 'Hello, World!'
-
-@app.route('/about')
-def about():
-    return 'About'
-
-
-
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../public/favicon.ico')
+logging.basicConfig(level=logging.DEBUG)
 
 # Gmail credentials and SMTP settings
 gmail_user = 'ilaraecodes@gmail.com'
@@ -42,7 +33,6 @@ def send_email(recipient_email):
     msg['To'] = recipient_email
 
     # HTML Content with a signup 
-    
     html = """
     <!DOCTYPE html>
     <html lang="en">
@@ -118,79 +108,45 @@ def send_email(recipient_email):
         server.login(sender_email, password)
         server.sendmail(sender_email, recipient_email, msg.as_string())
         print(f'Email sent to {recipient_email}')
-    
-    return render_template_string(html)
-    
         
 @app.route('/')
 def home():
     html_content = """
     <!DOCTYPE html>
     <html lang="en">
-
     <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up Form</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@2.0.3/dist/full.css" rel="stylesheet">
-</head>
-<body>
-    <div class="mx-auto my-10 shadow-xl card bg-base-100 w-96">
-        <figure class="px-10 pt-10">
-            <img src="https://foothillranchliving.com/assets/foothill-C4Za23dy.png" alt="Community" class="rounded-xl">
-        </figure>
-        <div class="card-body">
-            <h2 class="card-title">Sign Up for Our List</h2>
-            <form id="signupForm">
-                <div class="mb-4">
-                    <label for="firstName" class="block text-sm font-medium text-gray-700">First Name:</label>
-                    <input type="text" id="firstName" name="firstName" class="w-full input input-bordered" required>
-                </div>
-                <div class="mb-4">
-                    <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name:</label>
-                    <input type="text" id="lastName" name="lastName" class="w-full input input-bordered" required>
-                </div>
-                <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
-                    <input type="email" id="email" name="email" class="w-full input input-bordered" required>
-                </div>
-                <div class="justify-end card-actions">
-                    <button type="submit" class="btn btn-primary">Sign Up</button>
-                </div>
-            </form>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sign Up Form</title>
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@2.0.3/dist/full.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="mx-auto my-10 shadow-xl card bg-base-100 w-96">
+            <figure class="px-10 pt-10">
+                <img src="https://foothillranchliving.com/assets/foothill-C4Za23dy.png" alt="Community" class="rounded-xl">
+            </figure>
+            <div class="card-body">
+                <h2 class="card-title">Sign Up for Our List</h2>
+                <form id="signupForm">
+                    <div class="mb-4">
+                        <label for="firstName" class="block text-sm font-medium text-gray-700">First Name:</label>
+                        <input type="text" id="firstName" name="firstName" class="w-full input input-bordered" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name:</label>
+                        <input type="text" id="lastName" name="lastName" class="w-full input input-bordered" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
+                        <input type="email" id="email" name="email" class="w-full input input-bordered" required>
+                    </div>
+                    <div class="justify-end card-actions">
+                        <button type="submit" class="btn btn-primary">Sign Up</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('signupForm').addEventListener('submit', async function(event) {
-                event.preventDefault();
-
-                const formData = {
-                    firstName: document.getElementById('firstName').value,
-                    lastName: document.getElementById('lastName').value,
-                    email: document.getElementById('email').value
-                };
-
-                const response = await fetch('/api/signup', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                if (response.ok) {
-                    alert('Thank you for signing up!');
-                } else {
-                    alert('There was an error. Please try again.');
-                }
-            });
-        });
-    </script>
-</body>
-</html>
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
@@ -224,8 +180,6 @@ def home():
     """
     return render_template_string(html_content)
 
- 
-
 @app.route('/api/signup', methods=['POST'])
 def signup():
     data = request.json
@@ -255,6 +209,10 @@ def send_emails_from_csv():
                 recipient_email = row[0]  # Adjust as per your CSV column for email addresses
                 send_email(recipient_email)
     return jsonify({"status": "success"}), 200
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(app.static_folder, 'favicon.ico')
 
 if __name__ == '__main__':
     app.run(debug=True)
