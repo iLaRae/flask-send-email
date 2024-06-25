@@ -178,9 +178,7 @@ def home():
     """
     return render_template_string(html_content)
 
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(app.static_folder, 'favicon.ico')
+
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
