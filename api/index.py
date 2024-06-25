@@ -11,8 +11,8 @@ app = Flask(__name__, static_folder='../public')
 logging.basicConfig(level=logging.DEBUG)
 
 # Gmail credentials and SMTP settings from environment variables
-gmail_user = os.getenv('GMAIL_USER')
-gmail_password = os.getenv('GMAIL_PASSWORD')
+gmail_user = 'jeff@foothillranchneighbors.com'
+gmail_password = 'ypre exmw beby usrm'
 smtp_server = 'smtp.gmail.com'
 smtp_port = 587
 
